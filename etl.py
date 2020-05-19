@@ -3,30 +3,40 @@ import tensorflow as tf
 import pathlib
 import numpy as np
 
+print("Tensorflow Version: {}".format(tf.__version__))
+
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-# Deleted the double Duerer and renamed Dürer to Duerer.
-data_dir = pathlib.Path("/Users/sorenprivat/data/art_data/images/images")
-image_count = len(list(data_dir.glob('*/*.jpg')))
-print(image_count)
-
-CLASS_NAMES = np.array([item.name for item in data_dir.glob('*') if item.name != "LICENSE.txt"])
-print(CLASS_NAMES)
-
-image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
+# Constants
+IMAGE_PATH="/Users/sorenprivat/data/art_data/images/images"
+DATA_DIR=pathlib.Path(IMAGE_PATH)
 
 BATCH_SIZE = 32
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
+
+# Count number of images
+image_count = len(list(DATA_DIR.glob('*/*.jpg')))
 STEPS_PER_EPOCH = np.ceil(image_count/BATCH_SIZE)
+print(image_count)
 
-train_data_gen = image_generator.flow_from_directory(directory=str(data_dir),
-                                                     batch_size=BATCH_SIZE,
-                                                     shuffle=True,
-                                                     target_size=(IMG_HEIGHT, IMG_WIDTH),
-                                                     classes = list(CLASS_NAMES))
+# Class names
+CLASS_NAMES = np.array([item.name for item in DATA_DIR.glob('*') if item.name != "LICENSE.txt"])
+print(CLASS_NAMES)
 
-list_ds = tf.data.Dataset.list_files(str(data_dir/'*/*'))
+# Define ingestion pipeline
+image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
+
+train_data_gen = image_generator.flow_from_directory(
+    directory=str(DATA_DIR),
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    classes = list(CLASS_NAMES)
+)
+
+# Have a look at the data
+list_ds = tf.data.Dataset.list_files(str(DATA_DIR/'*/*'))
 for f in list_ds.take(5):
     print(f.numpy())
 
